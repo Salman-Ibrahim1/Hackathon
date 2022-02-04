@@ -1,0 +1,196 @@
+---
+title: "Uk HPI Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(psych)
+library(dplyr)
+library(ggplot2)
+install.packages("lubridate")
+#install.packages("tidyverse")
+library(lubridate)
+
+```
+
+#Read in data from our modified data set 
+Our objective is to undergo a statistical analysis using a range of tests 
+
+```{r}
+stampdutydata <- read_csv("UKHPImodified1.csv")
+stampdutydata1 <- data.frame(stampdutydata)
+stampdutydata1
+```
+```{r}
+str(stampdutydata)
+```
+
+```{r}
+stampdutydata1 <- stampdutydata1 %>%
+  mutate(Date = as.Date(Date, "%d/%m/%Y"))
+stampdutydata1
+```
+#look at structure again 
+
+```{r}
+
+#summaryvalues 
+
+summary(stampdutydata1)
+
+
+```
+
+```{r}
+head(stampdutydata1)
+```
+
+
+```{r}
+HPI <- stampdutydata1 %>%
+     select (Date, AveragePrice, Index, X1m.Change, X12m.Change,SalesVolume, StampDutyHoliday) %>%
+     filter(Date <= as.Date("2021-06-01"))
+HPI
+```
+     
+
+```{r}
+preholiday <- HPI %>%
+  filter(StampDutyHoliday == 0)
+
+
+holidayperiod <- HPI %>%
+  filter(StampDutyHoliday == 1)
+
+preholiday
+holidayperiod
+
+```
+
+Summary between post stamp holiday and during stamp duty holiday. first conduct a shapiro test on both to test for normality.
+
+```{r}
+shapiro.test(preholiday$AveragePrice)
+shapiro.test(preholiday$Index)
+shapiro.test(preholiday$X1m.Change)
+shapiro.test(preholiday$X12m.Change)
+shapiro.test(preholiday$SalesVolume)
+
+```
+From the shapiro test as we can see that all variables have a p value greater than 0.05 which is evidence to suggest that the data is normally distributed.
+
+
+```{r}
+hist(preholiday$Index)
+hist(preholiday$SalesVolume)
+hist(preholiday$X12m.Change)
+hist(preholiday$AveragePrice)
+```
+
+
+
+```{r}
+shapiro.test(holidayperiod$AveragePrice)
+shapiro.test(holidayperiod$Index)
+shapiro.test(holidayperiod$X1m.Change)
+shapiro.test(holidayperiod$X12m.Change)
+shapiro.test(holidayperiod$SalesVolume)
+```
+
+```{r}
+hist(holidayperiod$Index)
+hist(holidayperiod$SalesVolume)
+hist(holidayperiod$X12m.Change)
+hist(holidayperiod$AveragePrice)
+```
+
+we can assume that the data sets are normally distributed therefore we can do a normally distribution
+
+
+For the overall relationship we can compare the two variables between the average house price and the stampduty variable 
+
+first we will do a indpendant 2- sample t-test between the two groups 
+
+
+Our hypothesis is : 
+
+Ho - There is no difference in average price before and during the stampduty holiday.
+H1 - there is a difference between the the average house prices before and during the stamp duty holiday.
+
+```{r}
+t.test(preholiday$AveragePrice, holidayperiod$AveragePrice)
+```
+
+Based on the two sample t-test we can say that the p value is below 0.005 therefore showing that the there is a huge difference between the average house price before and during the stamp duty holiday.
+
+
+```{r}
+cor(preholiday$AveragePrice, holidayperiod$AveragePrice, method=c("pearson"))
+```
+
+From the correlation test we can see that the price test between pre and during stamp holiday there is negative association between the two dates meaning that the two data sets are completely for apart.
+
+
+```{r}
+ggplot(HPI, aes( x = HPI$StampDutyHoliday, y = HPI$AveragePrice)) + 
+  geom_point()
+
+
+
+boxplot(preholiday$AveragePrice, Stampdutholiday$AveragePrice, xlab = "Stampduty Yes/No", ylab="Average House Price", col = (c("gold", "darkgreen")))
+```
+
+
+```{r}
+ggplot(HPI, aes( x = HPI$Date, y = HPI$AveragePrice, colour = HPI$StampDutyHoliday, size = 10)) + 
+  geom_point()
+
+```
+
+#Percentage difference between pre holiday and during holiday.
+
+```{r}
+Pre_percentagediff <- (max(preholiday$AveragePrice) - min(preholiday$AveragePrice))/min(preholiday$AveragePrice) * 100
+         
+Pre_percentagediff
+
+
+```
+
+```{r}
+holiday_percentagediff <- (max(Stampdutholiday$AveragePrice) - min(Stampdutholiday$AveragePrice))/min(Stampdutholiday$AveragePrice) * 100
+         
+holiday_percentagediff
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
